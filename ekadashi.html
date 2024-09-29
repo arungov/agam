@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekadashi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 450px;
+            width: 100%;
+        }
+        h1 {
+            color: #4a4a4a;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .date-container {
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        #nextEkadashi {
+            font-size: 1.4rem;
+            color: #4a47a3;
+            font-weight: bold;
+            text-align: center;
+        }
+        .otherDates {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .footer {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #infoLink {
+            color: #4a47a3;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #ekadashiInfo {
+            display: none;
+            font-size: 1rem;
+            text-align: left;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f9f9f9;
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+        #ekadashiInfo h2 {
+            color: #4a47a3;
+        }
+        #ekadashiInfo p {
+            margin-bottom: 1rem;
+        }
+        .moon-phases {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+        }
+        .moon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ddd;
+            position: relative;
+            overflow: hidden;
+        }
+        .moon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 15%;
+            background-color: #4a47a3;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ekadashi</h1>
+        <div class="date-container">
+            <div id="nextEkadashi"></div>
+            <div id="previousEkadashi" class="otherDates"></div>
+            <div id="followingEkadashi" class="otherDates"></div>
+        </div>
+        <div class="moon-phases">
+            <div class="moon"></div>
+        </div>
+        <div class="footer">
+            <span>Designed by Arun</span>
+            <span id="infoLink">What is Ekadashi?</span>
+        </div>
+        <div id="ekadashiInfo">
+            <h2>Ekadashi: The Cosmic Power Day</h2>
+            <p>Ever wondered why learned elders fast on certain days? Welcome to the world of Ekadashi! 🥗</p>
+            <p>In Sanskrit, Ekadashi (एकादशी) means "eleven", as it's the 11th day of each lunar fortnight. In Kannada, it's known as "ಏಕಾದಶಿ" (Ēkādaśi).</p>
+            <p>🚀 Ekadashi is like a cosmic power-up day! It's believed that on this day, the moon and human mind are in perfect sync, boosting your spiritual energy and focus.</p>
+            <p>💪 Challenge accepted? Many people fast on Ekadashi, not just as a religious practice, but as a way to detox, improve concentration, and practice self-discipline. It's like a monthly reset button for your body and mind!</p>
+            <p>🧘‍♀️ Whether you're into spirituality or just looking for a way to challenge yourself, Ekadashi offers a chance to pause, reflect, and recharge. Give it a try - your future self might thank you!</p>
+        </div>
+    </div>
+
+    <script>
+        function isEkadashi(date) {
+            const moonCycle = 29.5305882; // average days in a lunar cycle
+            const newMoonDate = new Date('2000-01-06'); // reference date
+            const daysSinceNewMoon = Math.floor((date - newMoonDate) / (1000 * 60 * 60 * 24));
+            const dayInCycle = (daysSinceNewMoon % moonCycle + moonCycle) % moonCycle;
+
+            // Ekadashi falls on the 11th and 26th day of the lunar cycle
+            return Math.floor(dayInCycle) === 10 || Math.floor(dayInCycle) === 25;
+        }
+
+        function getNextEkadashi(startDate) {
+            let currentDate = new Date(startDate);
+            do {
+                currentDate.setDate(currentDate.getDate() + 1);
+            } while (!isEkadashi(currentDate));
+            return currentDate;
+        }
+
+        function getPreviousEkadashi(date) {
+            let currentDate = new Date(date);
+            do {
+                currentDate.setDate(currentDate.getDate() - 1);
+            } while (!isEkadashi(currentDate));
+            return currentDate;
+        }
+
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function updateEkadashiDates() {
+            const today = new Date();
+            
+            const nextEkadashi = getNextEkadashi(today);
+            const previousEkadashi = getPreviousEkadashi(nextEkadashi);
+            const followingEkadashi = getNextEkadashi(new Date(nextEkadashi.getTime() + 1 * 24 * 60 * 60 * 1000));
+
+            document.getElementById('previousEkadashi').textContent = `Previous: ${formatDate(previousEkadashi)}`;
+            document.getElementById('nextEkadashi').textContent = `Next: ${formatDate(nextEkadashi)}`;
+            document.getElementById('followingEkadashi').textContent = `Following: ${formatDate(followingEkadashi)}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateEkadashiDates();
+
+            document.getElementById('infoLink').addEventListener('click', function() {
+                const infoDiv = document.getElementById('ekadashiInfo');
+                infoDiv.style.display = infoDiv.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
