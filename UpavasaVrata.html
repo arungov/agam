@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upavasa</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #fdf2e9; color: #333; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; max-width: 450px; width: 90%; border-top: 10px solid #e67e22; }
+        h1 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; color: #7f8c8d; margin-bottom: 1rem; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 1.5rem; width: 100%; background: #fff; cursor: pointer; color: #d35400; font-weight: bold; font-size: 1rem; }
+        .event-name { font-size: 1.6rem; font-weight: bold; color: #d35400; margin: 0.5rem 0; min-height: 4rem; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
+        .date-display { font-size: 1.5rem; color: #2c3e50; margin-bottom: 0.3rem; }
+        .day-name { font-size: 1.3rem; color: #e67e22; font-weight: 600; margin-bottom: 1.5rem; }
+        .countdown { font-size: 1rem; background: #fef5e7; padding: 8px 15px; border-radius: 10px; color: #a04000; display: inline-block; margin-bottom: 1.5rem; font-weight: 500; }
+        .nav-controls { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        button { background: #e67e22; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 1.4rem; font-weight: bold; transition: all 0.3s; flex: 1; display: flex; align-items: center; justify-content: center; }
+        button:hover:not(:disabled) { background: #d35400; }
+        button:disabled { background: #edbb99; cursor: not-allowed; opacity: 0.5; }
+        .reset-btn { background: #7f8c8d; font-size: 0.9rem; flex: 1.5; }
+        .reset-btn:hover { background: #34495e; }
+        .footer { margin-top: 2rem; font-size: 0.75rem; color: #bdc3c7; line-height: 1.4; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1 id="header-label">Next Upavasa</h1>
+    <select id="filter-select" onchange="applyFilter()">
+        <option value="all">All Vrats (38)</option>
+        <option value="Ekadashi">Ekadashi Only (17)</option>
+        <option value="Chaturthi">Chaturthi Only (21)</option>
+    </select>
+    <div id="event-tag" class="event-name">--</div>
+    <div id="event-date" class="date-display">-- --</div>
+    <div id="event-day" class="day-name">--</div>
+    <div id="countdown" class="countdown">--</div>
+    <div class="nav-controls">
+        <button id="prev-btn" onclick="changeEvent(-1)">‹</button>
+        <button class="reset-btn" onclick="resetToToday()">Nearest</button>
+        <button id="next-btn" onclick="changeEvent(1)">›</button>
+    </div>
+    <div class="footer">
+        <b>Data Range:</b> Dec 2025 – Dec 2026<br>
+        <i>Observation dates calibrated for SVCC Temple Fremont.</i>
+    </div>
+</div>
+
+<script>
+    const allEvents = [
+        // 2025
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2025-12-23" },
+        { name: "Vaikunta Ekadashi", type: "Ekadashi", date: "2025-12-30" },
+        // 2026
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-01-07" },
+        { name: "Shattila Ekadashi", type: "Ekadashi", date: "2026-01-14" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-01-22" },
+        { name: "Jaya Ekadashi", type: "Ekadashi", date: "2026-01-29" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-02-05" },
+        { name: "Vijaya Ekadashi", type: "Ekadashi", date: "2026-02-13" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-02-21" },
+        { name: "Amalaki Ekadashi", type: "Ekadashi", date: "2026-02-27" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-03-06" },
+        { name: "Papmochani Ekadashi", type: "Ekadashi", date: "2026-03-15" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-03-22" },
+        { name: "Kamada Ekadashi", type: "Ekadashi", date: "2026-03-29" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-04-05" },
+        { name: "Varuthini Ekadashi", type: "Ekadashi", date: "2026-04-13" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-04-21" },
+        { name: "Mohini Ekadashi", type: "Ekadashi", date: "2026-04-27" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-05-05" },
+        { name: "Apara Ekadashi", type: "Ekadashi", date: "2026-05-13" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-05-20" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-06-03" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-06-19" },
+        { name: "Nirjala Ekadashi", type: "Ekadashi", date: "2026-06-25" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-07-03" },
+        { name: "Yogini Ekadashi", type: "Ekadashi", date: "2026-07-10" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-07-18" },
+        { name: "Devshayani Ekadashi", type: "Ekadashi", date: "2026-07-25" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-08-01" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-08-16" },
+        { name: "Kamika Ekadashi", type: "Ekadashi", date: "2026-08-09" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-08-31" },
+        { name: "Aja Ekadashi", type: "Ekadashi", date: "2026-09-07" },
+        { name: "Ganesh Chaturthi", type: "Chaturthi", date: "2026-09-15" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-09-30" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-10-15" },
+        { name: "Indira Ekadashi", type: "Ekadashi", date: "2026-10-06" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-10-29" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-11-13" },
+        { name: "Rama Ekadashi", type: "Ekadashi", date: "2026-11-05" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-11-27" },
+        { name: "Shukla Chaturthi", type: "Chaturthi", date: "2026-12-13" },
+        { name: "Mokshada Ekadashi", type: "Ekadashi", date: "2026-12-20" },
+        { name: "Sankatahara Chaturthi", type: "Chaturthi", date: "2026-12-27" }
+    ].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    let filteredEvents = [...allEvents];
+    let currentViewIndex = 0;
+    let nearestIndex = 0;
+
+    function applyFilter() {
+        const filterValue = document.getElementById('filter-select').value;
+        filteredEvents = filterValue === "all" ? [...allEvents] : allEvents.filter(e => e.type === filterValue);
+        resetToToday();
+    }
+
+    function updateDisplay() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const event = filteredEvents[currentViewIndex];
+        if (!event) return;
+        const eventDate = new Date(event.date + "T00:00:00");
+        const diffDays = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+        const header = document.getElementById('header-label');
+        header.innerText = currentViewIndex === nearestIndex ? "Next Upavasa" : (currentViewIndex < nearestIndex ? "Past Upavasa" : "Future Upavasa");
+        document.getElementById('event-tag').innerText = event.name;
+        document.getElementById('event-date').innerText = eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('event-day').innerText = eventDate.toLocaleDateString('en-US', { weekday: 'long' });
+        const countdownEl = document.getElementById('countdown');
+        if (diffDays === 0) { countdownEl.innerText = "• Today •"; countdownEl.style.background = "#d4efdf"; countdownEl.style.color = "#1e8449"; }
+        else if (diffDays < 0) { countdownEl.innerText = `${Math.abs(diffDays)} days ago`; countdownEl.style.background = "#eee"; countdownEl.style.color = "#777"; }
+        else { countdownEl.innerText = `In ${diffDays} days`; countdownEl.style.background = "#fef5e7"; countdownEl.style.color = "#a04000"; }
+        document.getElementById('prev-btn').disabled = (currentViewIndex === 0);
+        document.getElementById('next-btn').disabled = (currentViewIndex === filteredEvents.length - 1);
+    }
+
+    function changeEvent(step) { currentViewIndex += step; updateDisplay(); }
+    function resetToToday() {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        let found = filteredEvents.findIndex(e => new Date(e.date + "T00:00:00") >= today);
+        nearestIndex = found === -1 ? filteredEvents.length - 1 : found;
+        currentViewIndex = nearestIndex;
+        updateDisplay();
+    }
+    resetToToday();
+</script>
+</body>
+</html>
